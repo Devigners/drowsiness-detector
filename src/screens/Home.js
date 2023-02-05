@@ -89,6 +89,7 @@ const Home = () => {
             flex: 1,
             backgroundColor: "transparent",
             flexDirection: "row",
+            justifyContent: "center",
           }}
         >
           <TouchableOpacity
