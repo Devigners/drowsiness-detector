@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { Camera } from "expo-camera";
 import * as FileSystem from "expo-file-system";
@@ -19,22 +19,47 @@ const Home = () => {
   const [isDectacting, setIsDectacting] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [personStatus, setPersonStatus] = useState();
+
+  let camera = useRef(null);
   useEffect(() => {
-    const intervalId = setInterval(async () => {
-      if (isDectacting) {
-        console.log("Taking picture...");
-        let photo = await camera.takePictureAsync();
-        saveImage(photo.uri, "my-image");
-        console.log("Picture taken:", photo);
-        setSelectedImage(photo.uri);
-        uploadImage()
-          .then(() => {})
-          .catch((err) => console.log(err));
-      }
-    }, 200);
-    return () => clearInterval(intervalId);
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
   }, []);
 
+  if (hasPermission === null) {
+    return <View />;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
+  useEffect(() => {
+    if (camera) {
+      const intervalId = setInterval(async () => {
+        if (isDectacting && camera) {
+          console.log("Taking picture...");
+          let options = {
+            quality: 1,
+            base64: true,
+            exif: true,
+          };
+          let photo = await camera.current.takePictureAsync(options);
+          console.log(photo.uri);
+
+          saveImage(photo.uri, "my-image");
+          setSelectedImage(photo.uri);
+          uploadImage()
+            .then(() => {})
+            .catch((err) => console.log(err));
+        }
+      }, 5000);
+    }
+    return () => {};
+  }, [isDectacting]);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [type, setType] = useState(Camera.Constants.Type.front);
   const uploadImage = async () => {
     const formData = new FormData();
     formData.append("image", {
@@ -57,32 +82,16 @@ const Home = () => {
       console.error(error);
     }
   };
-  const [hasPermission, setHasPermission] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.front);
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, []);
-
-  if (hasPermission === null) {
-    return <View />;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
-
-  let camera;
 
   return (
     <View style={{ flex: 1 }}>
       <Camera
         style={{ flex: 1 }}
-        ref={(ref) => {
-          camera = ref;
-        }}
+        ref={camera}
         type={type}
+        onCameraReady={() => {
+          console.log("camera is ready");
+        }}
       >
         <View
           style={{
