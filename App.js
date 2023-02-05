@@ -10,28 +10,31 @@ const App = () => {
     Poppins_700Bold,
   });
   const Stack = createNativeStackNavigator();
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{
-            title: "Drowsiness",
-            headerTitleStyle: { fontFamily: "Poppins_700Bold" },
-          }}
-        ></Stack.Screen>
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{
-            title: "Drowsiness",
-            headerTitleStyle: { fontFamily: "Poppins_700Bold" },
-          }}
-        ></Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+  if (!fontsLoaded) return null;
+  else {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{
+              title: "Drowsiness",
+              headerTitleStyle: { fontFamily: "Poppins_700Bold" },
+            }}
+          ></Stack.Screen>
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{
+              title: "Drowsiness",
+              headerTitleStyle: { fontFamily: "Poppins_700Bold" },
+            }}
+          ></Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
 };
 
 export default App;

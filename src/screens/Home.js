@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text } from "react-native";
 import { Camera } from "expo-camera";
 import * as FileSystem from "expo-file-system";
 import { HeadingText } from "../components";
+import axios from "axios";
 
 async function saveImage(uri, filename) {
   const image = await FileSystem.readAsStringAsync(uri, {
@@ -64,20 +65,23 @@ const Home = () => {
     const formData = new FormData();
     formData.append("image", {
       uri: selectedImage,
-      name: "selectedImage.jpg",
+      name: "frame.jpg",
       type: "image/jpeg",
     });
 
     try {
-      let response = await fetch("<API URL>/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: formData,
-      });
-      let responseJson = await response.json();
-      console.log(responseJson);
+      let response = await axios.post(
+        "http://192.168.1.5:5000/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const responseJson = await response.json();
+      setPersonStatus(responseJson);
     } catch (error) {
       console.error(error);
     }
@@ -119,7 +123,11 @@ const Home = () => {
                 fontFamily: "Poppins_400Regular",
               }}
             >
-              Start Detecting
+              {isDectacting
+                ? personStatus
+                  ? `${personStatus}`
+                  : "startDetecting..."
+                : "Start Detecting"}
             </Text>
           </TouchableOpacity>
         </View>
